@@ -342,6 +342,15 @@ class Server extends AbstractTus
     protected function handlePost() : HttpResponse
     {
         $fileName   = $this->getRequest()->extractFileName();
+
+        // Filter fileName
+        $fileName = str_replace("&#x","& # x", $fileName);
+        $fileName = addslashes($fileName);
+
+        // Make a random path
+        $random = md5(uniqid());
+        $randomPath = substr($random, 0, 2) . DIRECTORY_SEPARATOR . substr($random, 2, 2) . DIRECTORY_SEPARATOR . substr($random, 4, 2);
+
         $uploadType = self::UPLOAD_TYPE_NORMAL;
 
         if (empty($fileName)) {
@@ -353,7 +362,15 @@ class Server extends AbstractTus
         }
 
         $uploadKey = $this->getUploadKey();
-        $filePath  = $this->uploadDir . DIRECTORY_SEPARATOR . $fileName;
+        $fileDir = $this->uploadDir . DIRECTORY_SEPARATOR . $randomPath . DIRECTORY_SEPARATOR; // fileDir
+        $filePath  = $fileDir . $fileName;
+
+        // Make dir when its not exists
+        if ( ! is_dir($fileDir)) {
+            if(mkdir($fileDir, 0755, true)==false) {
+                return $this->response->send(null, HttpResponse::HTTP_BAD_REQUEST);
+            }
+        }
 
         if ($this->getRequest()->isFinal()) {
             return $this->handleConcatenation($fileName, $filePath);
@@ -471,6 +488,7 @@ class Server extends AbstractTus
 
         try {
             $fileSize = $file->getFileSize();
+
             $offset   = $file->setKey($uploadKey)->setChecksum($checksum)->upload($fileSize);
 
             // If upload is done, verify checksum.
