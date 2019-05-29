@@ -3,6 +3,12 @@
   "description": "A pure PHP server and client for the tus resumable upload protocol v1.0.0",
   "type": "library",
   "license": "MIT",
+  "repositories": [
+      {
+          "type": "vcs",
+          "url": "https://github.com/ericjank/http-foundation.git"
+      }
+  ],
   "authors": [
     {
       "name": "Ankit Pokhrel",
